@@ -28,15 +28,27 @@ router.register(r'activities', ActivityViewSet)
 router.register(r'workouts', WorkoutViewSet)
 router.register(r'leaderboards', LeaderboardViewSet)
 
+import os
 @api_view(['GET'])
 def api_root(request, format=None):
-    return Response({
-        'users': reverse('user-list', request=request, format=format),
-        'teams': reverse('team-list', request=request, format=format),
-        'activities': reverse('activity-list', request=request, format=format),
-        'workouts': reverse('workout-list', request=request, format=format),
-        'leaderboards': reverse('leaderboard-list', request=request, format=format),
-    })
+    codespace_name = os.environ.get('CODESPACE_NAME')
+    if codespace_name:
+        base_url = f"https://{codespace_name}-8000.app.github.dev/api/"
+        return Response({
+            'users': base_url + 'users/',
+            'teams': base_url + 'teams/',
+            'activities': base_url + 'activities/',
+            'workouts': base_url + 'workouts/',
+            'leaderboards': base_url + 'leaderboards/',
+        })
+    else:
+        return Response({
+            'users': request.build_absolute_uri(reverse('user-list')),
+            'teams': request.build_absolute_uri(reverse('team-list')),
+            'activities': request.build_absolute_uri(reverse('activity-list')),
+            'workouts': request.build_absolute_uri(reverse('workout-list')),
+            'leaderboards': request.build_absolute_uri(reverse('leaderboard-list')),
+        })
 
 urlpatterns = [
     path('', api_root, name='api-root'),
